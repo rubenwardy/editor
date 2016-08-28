@@ -31,7 +31,7 @@ function editor.editor:new(ref)
 	ref.default_filesystem = filesys
 
 	ref:register_button("New", function(self, name, context)
-		print("New button pressed!")
+		self:show_new_file_dialog(name)
 	end, function(self, name, context)
 		return true
 	end)
@@ -88,6 +88,38 @@ end
 
 function editor.editor:delete_player(name)
 	self._context[name] = nil
+end
+
+function editor.editor:show_new_file_dialog(name, def)
+	def = def and minetest.formspec_escape(def) or ""
+	minetest.show_formspec(name, self.formname .. "_new", "field[filename;Filename;" .. def .. "]")
+end
+
+function editor.editor:on_new_dialog_event(name, fields)
+	if fields.quit and fields.filename then
+		if editor.parse_path(fields.filename ) then
+			local context = self._context[name]
+			if context and not context.filesystem:exists(fields.filename) then
+				context.filesystem:write(fields.filename, "")
+				context.tabs[#context.tabs + 1] = fields.filename
+				context.buffer[fields.filename] = ""
+				context.open = fields.filename
+				minetest.after(0.1, function()
+					self:show(name)
+				end)
+			else
+				minetest.chat_send_player(name, "File already exists!")
+				minetest.after(0.1, function()
+					self:show_new_file_dialog(name, fields.filename)
+				end)
+			end
+		else
+			minetest.chat_send_player(name, "Invalid path, try again!")
+			minetest.after(0.1, function()
+				self:show_new_file_dialog(name, fields.filename)
+			end)
+		end
+	end
 end
 
 function editor.editor:get_formspec(name, context)

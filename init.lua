@@ -35,6 +35,9 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 	if formname == "editor:editor" then
 		local name = player:get_player_name()
 		test_editor:on_event(name, fields)
+	elseif formname == "editor:editor_new" then
+		local name = player:get_player_name()
+		test_editor:on_new_dialog_event(name, fields)
 	end
 end)
 
