@@ -75,6 +75,22 @@ function editor.editor:register_button(name, callback, should_show)
 	}
 end
 
+function editor.editor:create_player(name)
+	self._context[name] = self._context[name] or  {
+		filesystem = self.default_filesystem:clone_filesystem(),
+		open = "init.lua",
+		tabs = {
+			"init.lua",
+			"depends.txt"
+		},
+		buffer = {}
+	}
+end
+
+function editor.editor:delete_player(name)
+	self._context[name] = nil
+end
+
 function editor.editor:get_formspec(name, context)
 	local fs = "size[12,6.75]" .. gui_bg .. gui_bg_img
 
