@@ -8,17 +8,15 @@ dofile(modpath .. "/editor.lua")
 
 -- Example editor!
 
-local test_editor = editor.editor:new()
-
-test_editor:register_button("Run", function(name, context)
+local test_editor = editor.editor:new("editor:editor")
+test_editor:register_button("Run", function(self, name, context)
 	local code = context.buffer[context.open]
 	if code then
 		-- WARNING! Insecure
 		print("running: " .. code)
 		local luacode = loadstring("return (" .. code .. ")")
 		if luacode then
-			local res = luacode()
-			minetest.chat_send_player(name, "Result: " .. res)
+			minetest.chat_send_player(name, "Result: " .. dump(luacode()))
 		else
 			minetest.chat_send_player(name, "Could not execute, errors in lua code")
 		end
@@ -29,7 +27,7 @@ end)
 
 minetest.register_chatcommand("editor", {
 	func = function(name, param)
-		test_editor:show(name, "editor:editor")
+		test_editor:show(name)
 	end
 })
 

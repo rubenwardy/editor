@@ -1,19 +1,3 @@
-local function deepcopy(obj, seen)
-	if type(obj) ~= 'table' then
-		return obj
-	end
-	if seen and seen[obj] then
-		return seen[obj]
-	end
-	local s = seen or {}
-	local copy = setmetatable({}, getmetatable(obj))
-	s[obj] = copy
-	for k, v in pairs(obj) do
-		copy[deepcopy(k, s)] = deepcopy(v, s)
-	end
-	return copy
-end
-
 function editor.parse_path(path)
 	local arr = path:split("/")
 	local res = {}
@@ -35,13 +19,15 @@ function editor.filesystem:new(ref)
 	ref = ref or {}
 	setmetatable(ref, self)
 	self.__index = self
-	self.files = {}
+	ref.files = {}
 	return ref
 end
 
 function editor.filesystem:clone_filesystem()
 	local ref = editor.filesystem:new()
-	ref.files = deepcopy(self.files) or {}
+	for path, data in pairs(self.files) do
+		ref.files[path] = data
+	end
 	return ref
 end
 

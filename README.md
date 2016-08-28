@@ -3,8 +3,8 @@
 Flexible text/code editor for minetest
 
 ```lua
-local test_editor = editor.editor:new()
-test_editor:register_button("Run", function(name, context)
+local test_editor = editor.editor:new("editor:editor")
+test_editor:register_button("Run", function(self, name, context)
 	local code = context.buffer[context.open]
 	if code then
 		-- WARNING! Insecure
