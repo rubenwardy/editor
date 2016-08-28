@@ -80,8 +80,7 @@ function editor.editor:create_player(name)
 		filesystem = self.default_filesystem:clone_filesystem(),
 		open = "init.lua",
 		tabs = {
-			"init.lua",
-			"depends.txt"
+			"init.lua"
 		},
 		buffer = {}
 	}
@@ -109,6 +108,22 @@ function editor.editor:get_formspec(name, context)
 		fs = fs .. ";" .. idx .."]"
 	end
 
+	-- TODO: turn into file tree
+	fs = fs .. "textlist[0,0;2.75,6.9;file_list;"
+	local list_idx = 0
+	local i = 1
+	for key, value in  pairs(context.filesystem.files) do
+		if i > 1 then
+			fs = fs .. ","
+		end
+		fs = fs .. key
+		if key == context.open then
+			list_idx = i
+		end
+		i = i + 1
+	end
+	fs = fs .. ";" .. list_idx .. ";false]"
+
 	local x = 0
 	for i = 1, #self._buttons do
 		local btn = self._buttons[i]
@@ -128,15 +143,7 @@ function editor.editor:get_formspec(name, context)
 end
 
 function editor.editor:show(name)
-	self._context[name] = self._context[name] or {
-		filesystem = self.default_filesystem:clone_filesystem(),
-		open = "init.lua",
-		tabs = {
-			"init.lua",
-			"depends.txt"
-		},
-		buffer = {}
-	}
+	self:create_player(name)
 	minetest.show_formspec(name, self.formname, self:get_formspec(name, self._context[name]))
 end
 
@@ -158,5 +165,26 @@ function editor.editor:on_event(name, fields)
 		local idx = tonumber(fields.buffer_tabs)
 		context.open = context.tabs[idx]
 		self:show(name)
+	end
+
+	if fields.file_list then
+		local evt = minetest.explode_textlist_event(fields.file_list)
+		if evt.type == "DCL" then
+			local i = 1
+			for key, value in pairs(context.filesystem.files) do
+				if i == evt.index then
+					if context.buffer[key] then
+						context.open = key
+					else
+						context.buffer[key] = context.filesystem:read(key)
+						context.open = key
+						context.tabs[#context.tabs + 1] = key
+					end
+					self:show(name)
+					break
+				end
+				i = i + 1
+			end
+		end
 	end
 end
