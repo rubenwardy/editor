@@ -32,6 +32,8 @@ function editor.editor:new(ref)
 
 	ref:register_button("New", function(self, name, context)
 		print("New button pressed!")
+	end, function(self, name, context)
+		return true
 	end)
 
 	ref:register_button("Save", function(self, name, context)
@@ -63,9 +65,14 @@ function editor.editor:new(ref)
 	return ref
 end
 
-function editor.editor:register_button(name, callback)
+function editor.editor:register_button(name, callback, should_show)
 	self._buttons[#self._buttons + 1] = name
-	self._button_map[name] = callback
+	self._button_map[name] = {
+		callback = callback,
+		should_show = should_show or function(self, name, context)
+			return context.open ~= nil
+		end
+	}
 end
 
 function editor.editor:get_formspec(name, context)
@@ -86,15 +93,19 @@ function editor.editor:get_formspec(name, context)
 		fs = fs .. ";" .. idx .."]"
 	end
 
+	local x = 0
+	for i = 1, #self._buttons do
+		local btn = self._buttons[i]
+		if self._button_map[btn].should_show(self, name, context) then
+			x = x + 1
+			fs = fs .. "button[" .. (2 + 1.05 * x) .. ",-0.15;1.2,1;btn_" ..
+				btn:lower() .. ";" .. btn .. "]"
+		end
+	end
+
 	if context.open then
 		local text = context.buffer[context.open] or context.filesystem:read(context.open)
 		fs = fs .. "textarea[3.25,0.8;9,7.2;text;;" .. text .. "]"
-
-		for i = 1, #self._buttons do
-			local btn = self._buttons[i]
-			fs = fs .. "button[" .. (2 + 1.05 * i) .. ",-0.15;1.2,1;btn_" ..
-				btn:lower() .. ";" .. btn .. "]"
-		end
 	end
 
 	return fs
@@ -123,7 +134,7 @@ function editor.editor:on_event(name, fields)
 	for i = 1, #self._buttons do
 		local btn = self._buttons[i]
 		if fields["btn_" .. btn:lower()] then
-			self._button_map[btn](self, name, context)
+			self._button_map[btn].callback(self, name, context)
 		end
 	end
 
