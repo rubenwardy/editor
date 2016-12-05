@@ -78,9 +78,9 @@ end
 function editor.editor:create_player(name)
 	self._context[name] = self._context[name] or  {
 		filesystem = self.default_filesystem:clone_filesystem(),
-		open = "init.lua",
+		open = self.default_filesystem:get_first_filepath(),
 		tabs = {
-			"init.lua"
+			self.default_filesystem:get_first_filepath()
 		},
 		buffer = {}
 	}
@@ -168,7 +168,7 @@ function editor.editor:get_formspec(name, context)
 
 	if context.open then
 		local text = context.buffer[context.open] or context.filesystem:read(context.open)
-		fs = fs .. "textarea[3.25,0.8;9,7.2;text;;" .. text .. "]"
+		fs = fs .. "textarea[3.25,0.8;9,7.2;text;;" .. minetest.formspec_escape(text) .. "]"
 	end
 
 	return fs

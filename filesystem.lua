@@ -43,6 +43,12 @@ function editor.filesystem:write(filepath, value)
 	self.files[filepath] = value
 end
 
+function editor.filesystem:get_first_filepath()
+	for path, _ in pairs(self.files) do
+		return path
+	end
+end
+
 function editor.filesystem:append(filepath, value)
 	local txt = self.files[filepath] or ""
 	txt = txt .. value
